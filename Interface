@@ -39,7 +39,7 @@ def Usuario():
 [5] Remover
 [6] Voltar para o Menu principal""")
         x=Tratamento()
-        if x == 7:
+        if x == 6:
            break
   
 
