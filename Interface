@@ -1,0 +1,77 @@
+def Tratamento():
+    while True:
+        try:
+            x=int(input('Digite uma opção: '))
+        except ValueError:
+            print("Você não digitou um número. Tente novamente")
+            continue
+        break
+    return x
+
+def Menu():
+    while True:
+        print("""=== Gerenciador de projetos ===
+[1] Usuários
+[2] Projetos
+[3] Tarefas
+[0] Sair""")
+        
+        x=Tratamento()
+
+
+        if x == 1:
+            Usuario()
+        elif x == 2:
+            Projetos()
+        elif x == 3:
+            Tarefas()
+        elif x == 0:
+            print("Saindo...")
+            break 
+
+def Usuario():
+    while True:
+        print("""=== Usuário ===
+[1] Cadastrar
+[2] Listar
+[3] Buscar Nome/E-mail
+[4] Atualizar
+[5] Remover
+[6] Voltar para o Menu principal""")
+        x=Tratamento()
+        if x == 7:
+           break
+  
+
+def Projetos():
+    while True:
+        print("""=== Projetos ===
+[1] Cadastrar
+[2] Listar
+[3] Buscar
+[4] Atualizar
+[5] Remover
+[6] Voltar para o Menu principal""")
+        x = Tratamento()
+        if x == 6:
+           break
+    
+
+
+def Tarefas():
+    while True:
+        print("""=== Tarefas ===")
+[1] Cadastrar
+[2] Listar
+[3] Atualizar
+[4] Remover
+[5] Voltar para o Menu principal""")
+        x=Tratamento()
+        if x == 5:
+            break
+
+     
+
+Menu()
+
+    
