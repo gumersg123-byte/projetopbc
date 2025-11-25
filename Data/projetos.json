@@ -1,9 +1,4 @@
-'''Projetos
-
-Cadastrar, listar, buscar, atualizar, remover.
-
-Regras: nome único por projeto; datas válidas (início ≤ fim).'''
-from datetime import date #Isso aqui é para colocar as datas de iniciação e término dos projetos depois
+from datetime import date
 import json
 import Storage
 import Services
@@ -11,6 +6,15 @@ import Services
 projetos = {}
 proximo_id = 1
 
+def validar_cadastro(dados_projeto, id=None):
+    projetos_existentes, _ = Storage.carregar_dados('projetos')
+    nome = dados_projeto['nome']
+    nome_projeto_upper = nome.strip().upper()
+    for projeto_id, projeto_dados in projetos_existentes.items():
+        if projeto_dados.get('nome_upper')==nome_projeto_upper and projeto_id != id:
+            print("Esse nome de projeto já existe.")
+            return False
+    return True
 
 def verifyTXT():
     while True:
@@ -25,15 +29,9 @@ def verifyTXT():
         break
     return x
 
-def check_nome(nome_projeto, id_atual=None):
-    nome_projeto_upper = nome_projeto.strip().upper()
-    for projeto_id, projeto_dados in projetos.items():
-        if projeto_dados.get('nome_upper') == nome_projeto_upper and projeto_id != id_atual:
-            return True
-    return False
 
 def check_id(projeto_id):
-    return str(projeto_id) in projetos
+    return Services.buscar_id('projetos', projeto_id) is not None
 
 def obterdatas():
     lista1 = [1, 3, 5, 7, 8, 10, 12]
@@ -41,6 +39,9 @@ def obterdatas():
     while True:
         try:
             ano = int(input("Digite o ano de início do projeto: "))
+            if ano < 1 or ano > 9999:
+                print("Ano fora do alcance. Tente novamente.")
+                continue
         except ValueError:
             print("O ano só contém números. Tente novamente")
             continue
@@ -204,7 +205,8 @@ def simsair(p):
         while p != 'sim' and p != 'sair':
             p = input("Opção inválida! Tente novamente (Sim para continuar, Sair para voltar): ").strip().lower()
         return '1' if p == 'sim' else '2'
-def projeto():
+
+def Menu_Projeto():
     global projetos
     global proximo_id
     
@@ -215,49 +217,67 @@ def projeto():
 [3] Buscar Projetos
 [4] Atualizar Projetos
 [5] Remover Projetos
-[0] Voltar''') #Esse menu provavelmente será removido depois, pois o Gustavo Silvestre é responsável pela interface
+[0] Voltar''')
         print("Digite o número da opção que deseja selecionar: ")
         x = verifyTXT()
         if (x==0):
             print("Voltando...")
-            Storage.salvar_dados('projetos', projetos, proximo_id)
-            break
+            return
         
         while (x==1):
-            nome = input("Escreva o nome do seu projeto (NOME ÚNICO): ").strip() #strip() serve para o nome não poder ser só "         ", porque ele tira os espaços do começo e do final (mas não tira os espaços do meio)
-            if not nome:
-                continue
-            if check_nome(nome):
-                print("Esse nome já existe.")
-                continue
+            while True:
+                nome = input("Escreva o nome do seu projeto (NOME ÚNICO): ").strip() #strip() serve para o nome não poder ser só "         ", porque ele tira os espaços do começo e do final (mas não tira os espaços do meio)
+                if not nome:
+                    continue
+
+                nomes = {"nome": nome, "nome_upper": nome.upper()}
+                if validar_cadastro(nomes):
+                    break
+                else:
+                    continue
+            
+            
             desc = input("Digite a descrição do seu projeto: ")
             data = obterdatas()
-            idprojeto = Services.formatar_id_P(proximo_id)
+            dados_para_salvar = {
+                "nome": nome,
+                "nome_upper": nome.upper(),
+                "descrição": desc,
+                "início": data[0],
+                "fim": data[1]
+            }
             
-            projetos[idprojeto]=({"id": idprojeto, "nome": nome, "descrição": desc, "início": data[0], "fim": data[1]})
-            proximo_id += 1
-            print("Projeto", nome, "cadastrado com sucesso! ID:", idprojeto) 
-            Storage.salvar_dados('projetos', projetos, proximo_id)
-            break
+            id_formatado, mensagem = Services.criar('projetos', dados_para_salvar)
+            
+            if id_formatado:
+                print(f"Projeto '{nome}' cadastrado com sucesso! ID: {id_formatado}")
+                break
+            else:
+                print(f"Falha ao cadastrar: {mensagem}")
+                continue
+
     
         if (x==2):
-            if not projetos:
+            projetos_atuais, _ =Storage.carregar_dados('projetos')
+            if not projetos_atuais:
                 print("Nenhum projeto cadastrado.")
             else:
                 print("\nLista de Projetos:")
-                for projeto_id, dados in projetos.items():
+                for projeto_id, dados in projetos_atuais.items():
                     print(f"  **ID**: {projeto_id}, **Nome**: {dados['nome']}, **Descrição**: {dados['descrição']}, **Início**: {dados['início']}, **Fim**: {dados['fim'] or 'N/A'}")
             y = input("Digite qualquer coisa para voltar ao menu: ")
             continue
 
         while (x==3): 
-            z = input("Escreva o ID (ex: p_001) do projeto que deseja buscar: ").strip().upper()
+            z = input("Escreva o ID (ex: p_001) ou o nome do projeto que deseja buscar: ").strip().upper()
             projeto_encontrado = None
             
             if check_id(z.lower()):
-                projeto_encontrado = projetos[z.lower()]
+                 projeto_encontrado = Services.buscar_id('projetos', z.lower())
+
             else:
-                for dados in projetos.values():
+                projetos_atuais, _ = Storage.carregar_dados('projetos')
+                for dados in projetos_atuais.values():
                     if dados.get('nome_upper') == z:
                         projeto_encontrado = dados
                         break
@@ -279,40 +299,45 @@ def projeto():
             a = input("Digite o ID do projeto que deseja atualizar, ou digite Sair para voltar ao menu: ").strip().lower()
             if a == 'sair':
                 break
-
-            if not check_id(a):
+            projeto_antigo=Services.buscar_id('projetos', a)
+            if not projeto_antigo:
                 print("Seu projeto não foi encontrado pelo ID.")
                 continue
 
             projeto_id_atualizar = a
-            projeto_antigo = projetos[projeto_id_atualizar]
             print(f"\nAtualizando projeto ID: {projeto_id_atualizar} (Nome atual: {projeto_antigo.get('nome')})")
-            
-
             while True:
-                nome = input("Digite o novo nome do projeto: ").strip()
-                if not nome:
+                novonome = input("Digite o novo nome do projeto: ").strip()
+                if not novonome:
                     continue
-                if check_nome(nome,projeto_id_atualizar):
-                    print("Esse nome já existe. Digite outro.")
+                novonomes = {"nome": novonome, "nome_upper": novonome.upper()}
+                if validar_cadastro(novonomes, id=projeto_id_atualizar):
+                    break
+                else:
                     continue
             
-                desc = input("Digite a descrição do projeto: ")
-                data = obterdatas()
-                del projetos[a.lower()]
+            novadesc = input("Digite a descrição do projeto: ")
+            novasdatas = obterdatas()
+            dados_salvar = {
+                "nome": novonome,
+                "nome_upper": novonome.upper(),
+                "descrição": novadesc,
+                "início": novasdatas[0],
+                "fim": novasdatas[1]
+            }
+            sucesso, mensagem = Services.atualizar('projetos', projeto_id_atualizar, dados_salvar)
+            if sucesso:
+                print(f"Projeto {projeto_id_atualizar} atualizado!")
                 break
-            projetos[projeto_id_atualizar]=({"id": projeto_id_atualizar, "nome": nome, "descrição": desc, "início": data[0], "fim": data[1]})
-            Storage.salvar_dados('projetos', projetos, proximo_id)
-            print("Projeto atualizado!")
-            continue
+            else:
+                print(f"Falha ao atualizar: {mensagem}")
+                continue
 
         if x==5:
             while True:
                 b = input("Escreva o ID do projeto que deseja remover (ex: p_001). Digite Sair para sair: ").strip().lower()
                 if b == 'sair':
                     break
-
-                
                 if not check_id(b):
                     p = input('''Projeto não encontrado. Deseja continuar pesquisando? Digite "Sim" para continuar pesquisando.
 Se quiser sair, digite "Sair": ''')
@@ -320,17 +345,10 @@ Se quiser sair, digite "Sair": ''')
                         break
                     continue
                 else:
-                    del projetos[b.lower()]
-                    Storage.salvar_dados('projetos', projetos, proximo_id)
-                    print(f"Projeto ID {b} deletado com sucesso!")
-                    break
+                    sucesso, mensagem = Services.remover_por_id('projetos', b)
+                    if sucesso:
+                        print(f"Projeto com id {b} removido com sucesso!")
+                        continue
+            print("Removido com sucesso!")
+            continue
 
-        continue
-
-        
-        
-
-projetos, proximo_id = Storage.carregar_dados('projetos')
-
-if __name__ == "__main__":
-    projeto()
