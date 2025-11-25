@@ -1,0 +1,336 @@
+'''Projetos
+
+Cadastrar, listar, buscar, atualizar, remover.
+
+Regras: nome único por projeto; datas válidas (início ≤ fim).'''
+from datetime import date #Isso aqui é para colocar as datas de iniciação e término dos projetos depois
+import json
+import Storage
+import Services
+
+projetos = {}
+proximo_id = 1
+
+
+def verifyTXT():
+    while True:
+        try:
+            x = int(input())
+            if(x<0 or x>5):
+                print("O número não corresponde com as opções. Tente novamente")
+                continue
+        except ValueError:
+            print("Você não digitou um número. Tente novamente")
+            continue
+        break
+    return x
+
+def check_nome(nome_projeto, id_atual=None):
+    nome_projeto_upper = nome_projeto.strip().upper()
+    for projeto_id, projeto_dados in projetos.items():
+        if projeto_dados.get('nome_upper') == nome_projeto_upper and projeto_id != id_atual:
+            return True
+    return False
+
+def check_id(projeto_id):
+    return str(projeto_id) in projetos
+
+def obterdatas():
+    lista1 = [1, 3, 5, 7, 8, 10, 12]
+    lista2 = [4, 6, 9, 11]
+    while True:
+        try:
+            ano = int(input("Digite o ano de início do projeto: "))
+        except ValueError:
+            print("O ano só contém números. Tente novamente")
+            continue
+        break
+
+    while True:
+        try:
+            mes = int(input("Digite o mês de início do projeto (1-12): "))
+            if mes < 1 or mes > 12:
+                print("O número do mês deve ser de 1-12. Tente novamente")
+                continue
+        except ValueError:
+            print("O mês só contém números. Tente novamente")
+            continue
+        break
+
+    while True:
+        if mes in lista1:
+            try:
+                dia = int(input("Digite o dia de início do projeto (1-31): "))
+                if dia < 1 or dia > 31:
+                    print("O número do dia deve ser de 1-31. Tente novamente")
+                    continue
+            except ValueError:
+                print("O dia só contém números. Tente novamente")
+                continue
+        elif mes in lista2:
+            try:
+                dia = int(input("Digite o dia de início do projeto (1-30): "))
+                if dia < 1 or dia > 30:
+                    print("O número do dia deve ser de 1-30. Tente novamente")
+                    continue
+            except ValueError:
+                print("O dia só contém números. Tente novamente")
+                continue
+        elif mes == 2 and ano % 4 == 0:
+            try:
+                dia = int(input("Digite o dia de início do projeto (1-29): "))
+                if dia < 1 or dia > 29:
+                    print("O número do dia deve ser de 1-29. Tente novamente")
+                    continue
+            except ValueError:
+                print("O dia só contém números. Tente novamente")
+                continue
+
+        else:
+            try:
+                dia = int(input("Digite o dia de início do projeto (1-28): "))
+                if dia < 1 or dia > 28:
+                    print("O número do dia deve ser de 1-28. Tente novamente")
+                    continue
+            except ValueError:
+                print("O dia só contém números. Tente novamente")
+                continue
+
+        break
+
+    while True:
+        try:
+            simnao = int(input("Você possui data de término do projeto? Digite 1 se tiver e 2 se não tiver: "))
+            if simnao < 1 or simnao > 2:
+                print("Digite 1 ou 2")
+                continue
+        except ValueError:
+            print("Digite 1 ou 2")
+            continue
+        break
+
+
+
+    if simnao == 1:
+        while True:
+            try:
+                ano2 = int(input("Digite o ano de término do projeto: "))
+                if ano2 < ano:
+                    print("Você não terminou o projeto antes de iniciar. Tente novamente.")
+                    continue
+            except ValueError:
+                print("O ano só contém números. Tente novamente")
+                continue
+            break
+
+        while True:
+            try:
+                mes2 = int(input("Digite o mês de término do projeto (1-12): "))
+                if mes2 < 1 or mes2 > 12:
+                    print("O número do mês deve ser de 1-12. Tente novamente")
+                    continue
+                if ano2 == ano and mes2 < mes:
+                    print("Você não terminou o projeto antes de iniciar. Tente novamente.")
+                    continue
+            except ValueError:
+                print("O mês só contém números. Tente novamente")
+                continue
+            break
+
+        while True:
+            if mes2 in lista1:
+                try:
+                    dia2 = int(input("Digite o dia de término do projeto (1-31): "))
+                    if dia2 < 1 or dia2 > 31:
+                        print("O número do dia deve ser de 1-31. Tente novamente")
+                        continue
+                except ValueError:
+                    print("O dia só contém números. Tente novamente")
+                    continue
+            elif mes2 in lista2:
+                try:
+                    dia2 = int(input("Digite o dia de término do projeto (1-30): "))
+                    if dia2 < 1 or dia2 > 30:
+                        print("O número do dia deve ser de 1-30. Tente novamente")
+                        continue
+                except ValueError:
+                    print("O dia só contém números. Tente novamente")
+                    continue
+            elif mes2 == 2 and ano2 % 4 == 0:
+                try:
+                    dia2 = int(input("Digite o dia de término do projeto (1-29): "))
+                    if dia2 < 1 or dia2 > 29:
+                        print("O número do dia deve ser de 1-29. Tente novamente")
+                        continue
+                except ValueError:
+                    print("O dia só contém números. Tente novamente")
+                    continue
+
+            else:
+                try:
+                    dia2 = int(input("Digite o dia de término do projeto (1-28): "))
+                    if dia2 < 1 or dia2 > 28:
+                        print("O número do dia deve ser de 1-28. Tente novamente")
+                        continue
+                except ValueError:
+                    print("O dia só contém números. Tente novamente")
+                    continue
+
+            if ano2 == ano and mes2 == mes and dia2 < dia:
+                print("Você não terminou o projeto antes de iniciar. Tente novamente.")
+                continue
+
+            break
+        dataI = date(ano, mes, dia)
+        dataI = dataI.strftime('%d-%m-%Y')
+        dataT = date(ano2, mes2, dia2)
+        dataT = dataT.strftime('%d-%m-%Y')
+        datas = (dataI, dataT)
+        return datas
+    if simnao == 2:
+        dataI = date(ano, mes, dia)
+        dataI = dataI.strftime('%d-%m-%Y')
+        dataT = None
+        datas = (dataI, dataT)
+        return datas
+        
+def simsair(p):
+    p = p.strip().lower() 
+    if p == 'sim':
+        return '1'
+    elif p == 'sair':
+        return '2'
+    else:
+        while p != 'sim' and p != 'sair':
+            p = input("Opção inválida! Tente novamente (Sim para continuar, Sair para voltar): ").strip().lower()
+        return '1' if p == 'sim' else '2'
+def projeto():
+    global projetos
+    global proximo_id
+    
+    while True:
+        print('''==== Projetos ====
+[1] Cadastrar Projeto
+[2] Listar Projetos
+[3] Buscar Projetos
+[4] Atualizar Projetos
+[5] Remover Projetos
+[0] Voltar''') #Esse menu provavelmente será removido depois, pois o Gustavo Silvestre é responsável pela interface
+        print("Digite o número da opção que deseja selecionar: ")
+        x = verifyTXT()
+        if (x==0):
+            print("Voltando...")
+            Storage.salvar_dados('projetos', projetos, proximo_id)
+            break
+        
+        while (x==1):
+            nome = input("Escreva o nome do seu projeto (NOME ÚNICO): ").strip() #strip() serve para o nome não poder ser só "         ", porque ele tira os espaços do começo e do final (mas não tira os espaços do meio)
+            if not nome:
+                continue
+            if check_nome(nome):
+                print("Esse nome já existe.")
+                continue
+            desc = input("Digite a descrição do seu projeto: ")
+            data = obterdatas()
+            idprojeto = Services.formatar_id_P(proximo_id)
+            
+            projetos[idprojeto]=({"id": idprojeto, "nome": nome, "descrição": desc, "início": data[0], "fim": data[1]})
+            proximo_id += 1
+            print("Projeto", nome, "cadastrado com sucesso! ID:", idprojeto) 
+            Storage.salvar_dados('projetos', projetos, proximo_id)
+            break
+    
+        if (x==2):
+            if not projetos:
+                print("Nenhum projeto cadastrado.")
+            else:
+                print("\nLista de Projetos:")
+                for projeto_id, dados in projetos.items():
+                    print(f"  **ID**: {projeto_id}, **Nome**: {dados['nome']}, **Descrição**: {dados['descrição']}, **Início**: {dados['início']}, **Fim**: {dados['fim'] or 'N/A'}")
+            y = input("Digite qualquer coisa para voltar ao menu: ")
+            continue
+
+        while (x==3): 
+            z = input("Escreva o ID (ex: p_001) do projeto que deseja buscar: ").strip().upper()
+            projeto_encontrado = None
+            
+            if check_id(z.lower()):
+                projeto_encontrado = projetos[z.lower()]
+            else:
+                for dados in projetos.values():
+                    if dados.get('nome_upper') == z:
+                        projeto_encontrado = dados
+                        break
+
+            if projeto_encontrado:
+                print(f'\n--- Projeto Encontrado (ID: {projeto_encontrado["id"]}) ---')
+                print(f'Nome: {projeto_encontrado["nome"]}')
+                print(f'Descrição: {projeto_encontrado["descrição"]}')
+                print(f'Início: {projeto_encontrado["início"]}')
+                print(f'Fim: {projeto_encontrado["fim"] or "Não definido"}')
+                print('-------------------------------------------')
+                input("Digite qualquer coisa para voltar ao menu: ")
+                break
+            else:
+                p = input('Projeto não encontrado. Deseja continuar pesquisando? Digite "Sim" para continuar pesquisando.\nSe quiser sair, digite "Sair": ')
+                if simsair(p) == '2':
+                    break
+        while(x==4):
+            a = input("Digite o ID do projeto que deseja atualizar, ou digite Sair para voltar ao menu: ").strip().lower()
+            if a == 'sair':
+                break
+
+            if not check_id(a):
+                print("Seu projeto não foi encontrado pelo ID.")
+                continue
+
+            projeto_id_atualizar = a
+            projeto_antigo = projetos[projeto_id_atualizar]
+            print(f"\nAtualizando projeto ID: {projeto_id_atualizar} (Nome atual: {projeto_antigo.get('nome')})")
+            
+
+            while True:
+                nome = input("Digite o novo nome do projeto: ").strip()
+                if not nome:
+                    continue
+                if check_nome(nome,projeto_id_atualizar):
+                    print("Esse nome já existe. Digite outro.")
+                    continue
+            
+                desc = input("Digite a descrição do projeto: ")
+                data = obterdatas()
+                del projetos[a.lower()]
+                break
+            projetos[projeto_id_atualizar]=({"id": projeto_id_atualizar, "nome": nome, "descrição": desc, "início": data[0], "fim": data[1]})
+            Storage.salvar_dados('projetos', projetos, proximo_id)
+            print("Projeto atualizado!")
+            continue
+
+        if x==5:
+            while True:
+                b = input("Escreva o ID do projeto que deseja remover (ex: p_001). Digite Sair para sair: ").strip().lower()
+                if b == 'sair':
+                    break
+
+                
+                if not check_id(b):
+                    p = input('''Projeto não encontrado. Deseja continuar pesquisando? Digite "Sim" para continuar pesquisando.
+Se quiser sair, digite "Sair": ''')
+                    if simsair(p) == '2':
+                        break
+                    continue
+                else:
+                    del projetos[b.lower()]
+                    Storage.salvar_dados('projetos', projetos, proximo_id)
+                    print(f"Projeto ID {b} deletado com sucesso!")
+                    break
+
+        continue
+
+        
+        
+
+projetos, proximo_id = Storage.carregar_dados('projetos')
+
+if __name__ == "__main__":
+    projeto()
