@@ -1,9 +1,9 @@
 import json
 
 ARQUIVOS = {
-    'projetos': 'projetos.json',
-    'usuarios': 'usuarios.json',
-    'tarefas': 'tarefas.json'
+    'projetos': 'Data/projetos.json',
+    'usuarios': 'Data/usuarios.json',
+    'tarefas': 'Data/tarefas.json'
 }
 
 def carregar_dados(modulo):
@@ -20,12 +20,12 @@ def carregar_dados(modulo):
             conteudo_json = json.load(f)
             dados = conteudo_json.get('dados', {})
             proximo_id = conteudo_json.get('proximo_id', 1)
-            print(f"Dados de {modulo} carregados do arquivo '{nome_arquivo}'.")
     except FileNotFoundError:
-        print(f"Arquivo '{nome_arquivo}' não encontrado. Iniciando novo banco de dados para {modulo}.")
+        print(f"Iniciando novo banco de dados para {modulo}.")
+        return {}, 1
     except json.JSONDecodeError:
         print(f"Erro ao decodificar JSON em '{nome_arquivo}'. Iniciando novo banco de dados para {modulo}.")
-        
+        return {}, 1
     return dados, proximo_id
 
 def salvar_dados(modulo, dados, proximo_id):
