@@ -1,0 +1,43 @@
+import json
+
+ARQUIVOS = {
+    'projetos': 'projetos.json',
+    'usuarios': 'usuarios.json',
+    'tarefas': 'tarefas.json'
+}
+
+def carregar_dados(modulo):
+    if modulo not in ARQUIVOS:
+        print(f"Erro: Módulo '{modulo}' desconhecido.")
+        return {}, 1
+        
+    nome_arquivo = ARQUIVOS[modulo]
+    dados = {}
+    proximo_id = 1
+    
+    try:
+        with open(nome_arquivo, 'r') as f:
+            conteudo_json = json.load(f)
+            dados = conteudo_json.get('dados', {})
+            proximo_id = conteudo_json.get('proximo_id', 1)
+            print(f"Dados de {modulo} carregados do arquivo '{nome_arquivo}'.")
+    except FileNotFoundError:
+        print(f"Arquivo '{nome_arquivo}' não encontrado. Iniciando novo banco de dados para {modulo}.")
+    except json.JSONDecodeError:
+        print(f"Erro ao decodificar JSON em '{nome_arquivo}'. Iniciando novo banco de dados para {modulo}.")
+        
+    return dados, proximo_id
+
+def salvar_dados(modulo, dados, proximo_id):
+    if modulo not in ARQUIVOS:
+        print(f"Erro: Módulo '{modulo}' desconhecido. Não foi possível salvar.")
+        return
+        
+    nome_arquivo = ARQUIVOS[modulo]
+    dados_a_salvar = {
+        'dados': dados,
+        'proximo_id': proximo_id
+    }
+    with open(nome_arquivo, 'w') as f:
+        json.dump(dados_a_salvar, f, indent=4)
+    print(f"Dados de {modulo} salvos em '{nome_arquivo}' com sucesso.")
