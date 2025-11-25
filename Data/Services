@@ -1,0 +1,2 @@
+def formatar_id(id_int, prefixo='p'):
+    return f"{prefixo}_{id_int:03d}"
