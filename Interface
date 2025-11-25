@@ -1,3 +1,7 @@
+import Projetos
+#import Usuarios
+#import Tarefas
+
 def Tratamento():
     while True:
         try:
@@ -8,7 +12,7 @@ def Tratamento():
         break
     return x
 
-def Menu():
+def Menu_Principal():
     while True:
         print("""=== Gerenciador de projetos ===
 [1] Usuários
@@ -22,12 +26,15 @@ def Menu():
         if x == 1:
             Usuario()
         elif x == 2:
-            Projetos()
+            Projetos.Menu_Projeto()
         elif x == 3:
             Tarefas()
         elif x == 0:
             print("Saindo...")
-            break 
+            break
+        else:
+            print("Opção não encontrada. Tente novamente.")
+        continue
 
 def Usuario():
     while True:
@@ -41,23 +48,7 @@ def Usuario():
         x=Tratamento()
         if x == 6:
            break
-  
-
-def Projetos():
-    while True:
-        print("""=== Projetos ===
-[1] Cadastrar
-[2] Listar
-[3] Buscar
-[4] Atualizar
-[5] Remover
-[6] Voltar para o Menu principal""")
-        x = Tratamento()
-        if x == 6:
-           break
     
-
-
 def Tarefas():
     while True:
         print("""=== Tarefas ===")
@@ -69,6 +60,7 @@ def Tarefas():
         x=Tratamento()
         if x == 5:
             break
+
 
      
 
