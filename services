@@ -1,0 +1,121 @@
+import storage
+import models
+import utils
+import json
+
+def obter_modulo_e_dados(modulo):
+    dados_dict, proximo_id = storage.carregar_dados(modulo)
+    return dados_dict, proximo_id
+
+def salvar_modulo(modulo, dados_dict, proximo_id):
+    storage.salvar_dados(modulo, dados_dict, proximo_id)
+
+def _preparar_dados_item(modulo, dados_do_item):
+    if modulo == 'projetos':
+        dados_do_item['nome_upper'] = dados_do_item['nome'].upper()
+    elif modulo == 'usuarios':
+        dados_do_item['Nome'] = dados_do_item.get('Nome', '').strip().title()
+        dados_do_item['E-mail'] = dados_do_item.get('E-mail', '').lower()
+        dados_do_item['Perfil'] = dados_do_item.get('Perfil', '').upper()
+        dados_do_item['Nome_upper'] = dados_do_item['Nome'].upper()
+    return dados_do_item
+
+
+def validar_nome_projeto(nome):
+    temp_dados = {"nome": nome, "nome_upper": nome.upper()}
+    return models.verificar_regras_especificas('projetos', temp_dados)
+
+def obter_todos(modulo):
+    dados_dict, _ = obter_modulo_e_dados(modulo)
+    return dados_dict
+
+
+
+def criar(modulo, dados_do_item):
+    dados_dict, proximo_id = obter_modulo_e_dados(modulo)
+    dados_do_item = _preparar_dados_item(modulo, dados_do_item)
+    if not models.verificar_regras_especificas(modulo, dados_do_item):
+        if modulo == 'usuarios':
+            return None, "Nome ou e-mail já cadastrado."
+        return None, "Erro: Nome do projeto já existe."    
+    item_id_formatado = utils.formatar_id(proximo_id, prefixo=modulo[0])
+    dados_dict[item_id_formatado] = dados_do_item
+    proximo_id +=1
+    try:
+        salvar_modulo(modulo, dados_dict, proximo_id)
+        return item_id_formatado, "ID Criado com sucesso!"
+    except Exception as e:
+        return None, f"Erro ao salvar dados: {e}"
+
+def buscar_id(modulo, item_id):
+    dados_dict, _ = obter_modulo_e_dados(modulo)
+    item = dados_dict.get(item_id)
+    if item:
+        item['id'] = item_id
+    return item
+
+def buscar_projeto(z):
+    projetos_atuais, _ = obter_modulo_e_dados('projetos')
+    Z = z.upper()
+    projeto_encontrado = buscar_id('projetos', z.lower())
+    if not projeto_encontrado:
+        for projeto_id, dados in projetos_atuais.items():
+            if dados.get('nome_upper') == Z:
+                dados['id'] = projeto_id
+                return dados
+    return projeto_encontrado
+
+def buscar_usuario(q):
+    usuarios_atuais, _ = obter_modulo_e_dados('usuarios')
+    q_formatado = q.strip().lower()
+    
+    usuario_encontrado = buscar_id('usuarios', q_formatado) 
+    if usuario_encontrado:
+        return usuario_encontrado
+    
+    for user_id, dados in usuarios_atuais.items():
+        if dados.get('E-mail') == q_formatado:
+            dados['id'] = user_id
+            return dados
+    q_upper = q.upper()
+    for user_id, dados in usuarios_atuais.items():
+        if dados.get('Nome_upper') == q_upper:
+            dados['id'] = user_id
+            return dados
+            
+    return None
+
+
+def atualizar(modulo, item_id, novosdados):
+    dados_dict, proximo_id = obter_modulo_e_dados(modulo)
+    
+    if item_id not in dados_dict:
+        return False, "ID não encontrado."
+
+    novosdados = _preparar_dados_item(modulo, novosdados)
+    
+    if not models.verificar_regras_especificas(modulo, novosdados, id_atual=item_id):
+        if modulo == 'usuarios':
+            return False, "Nome ou e-mail já está em uso"
+        return False, "O novo nome de projeto já está em uso."
+    
+    dados_dict[item_id].update(novosdados)
+    
+    try:
+        salvar_modulo(modulo, dados_dict, proximo_id)
+        return True, "Atualizado com sucesso."
+    except Exception as e:
+        return False, f"Erro ao salvar dados: {e}"
+
+def remover_por_id(modulo, item_id):
+    dados_dict, proximo_id = obter_modulo_e_dados(modulo)
+    
+    if item_id not in dados_dict:
+        return False, "ID não encontrado."
+    del dados_dict[item_id]
+    try:
+        salvar_modulo(modulo, dados_dict, proximo_id)
+        return True, "Removido com sucesso."
+    except Exception as e:
+        return False, f"Erro ao salvar dados: {e}"
+
