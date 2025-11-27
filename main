@@ -1,5 +1,5 @@
-import Interface
+import ui
 
 if __name__ == "__main__":
-     Interface.Menu_Principal()
+     ui.Menu_Principal()
 
