@@ -18,8 +18,15 @@ def _preparar_dados_item(modulo, dados_do_item):
         dados_do_item['E-mail'] = dados_do_item.get('E-mail', '').lower()
         dados_do_item['Perfil'] = dados_do_item.get('Perfil', '').upper()
         dados_do_item['Nome_upper'] = dados_do_item['Nome'].upper()
+    elif modulo == 'tarefas':
+        dados_do_item['titulo'] = dados_do_item.get('titulo', '').strip()
+        dados_do_item['status'] = dados_do_item.get('status', 'pendente').lower()
+        dados_do_item['prazo'] = dados_do_item.get('prazo', '')
+        if not buscar_id('projetos', dados_do_item.get('projeto_id')):
+            raise ValueError("ID do projeto não encontrado")
+        if not buscar_id('usuarios', dados_do_item.get('responsavel_id')):
+            raise ValueError("ID do responsável não encontrado")
     return dados_do_item
-
 
 def validar_nome_projeto(nome):
     temp_dados = {"nome": nome, "nome_upper": nome.upper()}
@@ -119,3 +126,24 @@ def remover_por_id(modulo, item_id):
     except Exception as e:
         return False, f"Erro ao salvar dados: {e}"
 
+def concluir_tarefa(tarefa_id):
+    dados_dict, proximo_id = obter_modulo_e_dados('tarefas')
+    if tarefa_id not in dados_dict:
+        return False, "ID na tarefa não encontrado."
+    dados_dict[tarefa_id]['status'] = 'concluída'
+    try:
+        salvar_modulo('tarefas', dados_dict, proximo_id)
+        return True, "Tarefa marcada como concluída."
+    except Exception as e:
+        return False, f"Erro ao salvar: {e}"
+
+def reabrir_tarefa(tarefa_id):
+    dados_dict, proximo_id = obter_modulo_e_dados('tarefas')
+    if tarefa_id not in dados_dict:
+        return False, "ID da tarefa não encontrado."
+    dados_dict[tarefa_id]['status']='pendente'
+    try:
+        salvar_modulo('tarefas', dados_dict, proximo_id)
+        return True, "Tarefa marcada como pendente."
+    except Exception as e:
+        return False, f"Erro ao salvar: {e}"
