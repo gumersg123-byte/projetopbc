@@ -147,3 +147,4 @@ def reabrir_tarefa(tarefa_id):
         return True, "Tarefa marcada como pendente."
     except Exception as e:
         return False, f"Erro ao salvar: {e}"
+
