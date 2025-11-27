@@ -205,14 +205,15 @@ def obterdatas():
 
             break
         dataI = date(ano, mes, dia)
-        dataI = dataI.strftime('%d-%m-%Y')
+        dataI = dataI.strftime('%Y-%m-%d')
         dataT = date(ano2, mes2, dia2)
-        dataT = dataT.strftime('%d-%m-%Y')
+        dataT = dataT.strftime('%Y-%m-%d')
         datas = (dataI, dataT)
         return datas
     if simnao == 2:
         dataI = date(ano, mes, dia)
-        dataI = dataI.strftime('%d-%m-%Y')
+        dataI = dataI.strftime('%Y-%m-%d')
         dataT = None
         datas = (dataI, dataT)
         return datas
+
