@@ -1,5 +1,7 @@
 import services
 import utils
+import reports
+import sys
 
 def Menu_Principal():
     while True:
@@ -7,6 +9,7 @@ def Menu_Principal():
 [1] Usuários
 [2] Projetos
 [3] Tarefas
+[4] Relatórios
 [0] Sair""")
         
         x=utils.Tratamento()
@@ -18,6 +21,8 @@ def Menu_Principal():
             Menu_Projeto()
         elif x == 3:
             Menu_Tarefas()
+        elif x == 4:
+            Menu_Relatorios()
         elif x == 0:
             print("Saindo...")
             break
@@ -664,3 +669,31 @@ def Menu_Tarefas():
             tarefa_id = input("Digite o ID da tarefa para REABRIR (status: pendente): ").strip().lower()
             sucesso, mensagem = services.reabrir_tarefa(tarefa_id)
             print(mensagem)
+
+def Menu_Relatorios():
+        while True:
+            print("\n" + "="*40)
+            print("         MENU DE RELATÓRIOS")
+            print("="*40)
+            print("1. Status Geral do Sistema")
+            print("2. Tarefas Agrupadas por Projeto")
+            print("3. Tarefas Atrasadas")
+            print("4. Voltar ao Menu Principal")
+            print("="*40)
+
+
+            opcao = utils.Tratamento() 
+
+            if opcao == 1:
+                reports.relatorio_status_geral()
+            elif opcao == 2:
+                reports.relatorio_tarefas_por_projeto()
+            elif opcao == 3:
+                reports.relatorio_tarefas_atrasadas()
+            elif opcao == 4:
+                break
+            else:
+                print("❌ Opção inválida. Por favor, digite um número de 1 a 4.")
+            
+            if opcao in [1, 2, 3]:
+                input("\nPressione Enter para continuar e voltar ao menu de relatórios...")
